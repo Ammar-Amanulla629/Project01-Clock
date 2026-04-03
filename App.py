@@ -1,36 +1,48 @@
 import tkinter as tk
+import requests
+from datetime import datetime, timedelta
 
-class Clock:
-    def __init__(self, root):
-        self.seconds = 0
-        self.minutes = 0
-        self.hours = 0
+current_time = None
 
-        self.label = tk.Label(root, font= ("Ariel", 48), bg = "black", fg = "cyan")
-        self.label.pack(padx=20, pady=20)
 
-        self.update_clock()
+#switched to using an API to obtain real world time
+def API_clock():
+    global current_time
+    try:
+        if current_time is None:
+            url = 'https://timeapi.io/api/Time/current/zone?timeZone=Europe/London'
+            headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'}
+            response = requests.get(url, headers=headers, timeout=5)
 
-    def update_clock(self):
-        self.seconds += 1
+            response.raise_for_status()
+            data = response.json()
+            dt = data['dateTime']
 
-        if self.seconds == 60:
-            self.seconds = 0
-            self.minutes += 1
+            current_time = datetime.fromisoformat(dt.replace('Z', ''))
+        else:
+            current_time += timedelta(seconds=1)
+        label.config(text=current_time.strftime("%H:%M:%S"))
 
-        if self.minutes == 60:
-            self.minutes = 0
-            self.hours += 1
+    except Exception as e:
+        # This will print the actual error to your terminal/console!
+        print(f"Debug Error: {e}") 
+        label.config(text="Error catching time")
+        
+        # Reset current_time so it tries to hit the API again on the next loop
+        current_time = None 
 
-        if self.hours == 24:
-            self.hours = 0
+    # Loop every 1000ms (1 second)
+    root.after(1000, API_clock)
 
-        time_string = f"{self.hours:02}:{self.minutes:02}:{self.seconds:02}"
-        self.label.config(text=time_string)
-        self.label.after(1000, self.update_clock)
+    
 
 root = tk.Tk()
-root.title("My Python Clock")
-root.configure(bg="black")
-my_clock = Clock(root)
+root.title("API Clock")
+root.geometry("300x150")
+root.configure(bg = "Black")
+
+label = tk.Label(root, font = ("Vienna", 40))
+label.pack(pady=40)
+
+API_clock()
 root.mainloop()
