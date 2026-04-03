@@ -12,9 +12,13 @@ def API_clock():
         if current_time is None:
             url = 'https://timeapi.io/api/Time/current/zone?timeZone=Europe/London'
             headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'}
+            
+            #prevents the app from freezing 
             response = requests.get(url, headers=headers, timeout=5)
 
             response.raise_for_status()
+
+            #converts the raw JSON response into a usable python dictionary
             data = response.json()
             dt = data['dateTime']
 
